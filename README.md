@@ -2,6 +2,10 @@
 
 An open-source, AI-powered personal travel assistant built on [Fliggy MCP](https://github.com/anthropics/model-context-protocol). FlyAI orchestrates specialized agents — search, flights, hotels, attractions, and more — to help you plan trips through natural conversation.
 
+## Demo
+
+![FlyAI Demo](./assets/demo.gif)
+
 ## What FlyAI Does
 
 Ask a question like *"Plan a 5-day trip to Kyoto"* and FlyAI dispatches multiple agents in parallel to find flights, hotels, and attractions, then assembles the results into a single, coherent answer. It supports both English and Chinese queries out of the box.
