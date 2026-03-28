@@ -93,16 +93,43 @@ export interface PoiItem {
   };
 }
 
-export interface AgentResult {
-  agentId: AgentType;
+// ── Orchestrator types ──
+
+export interface PlanItem {
+  type: "agent" | "skill";
+  id: string;
+  reason: string;
+  params?: Record<string, string>;
+}
+
+export interface ExecutionResult {
+  type: "agent" | "skill";
+  id: string;
+  reason: string;
   items: unknown[];
   error?: string;
 }
+
+export interface OrchestratorResponse {
+  plan: {
+    thinking: string;
+    items: PlanItem[];
+  };
+  results: ExecutionResult[];
+  summary: string;
+  error?: string;
+}
+
+// ── Chat message ──
 
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
-  results?: AgentResult[];
-  activeAgents?: AgentType[];
+  // Orchestrator-driven fields
+  plan?: PlanItem[];
+  thinking?: string;
+  results?: ExecutionResult[];
+  summary?: string;
+  isLoading?: boolean;
 }

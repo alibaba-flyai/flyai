@@ -67,6 +67,22 @@
   100% { background-position: 200% 0; }
 }
 
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 .animate-slide-in {
   animation: slide-in 0.4s ease-out;
 }
@@ -85,6 +101,14 @@
 
 .animate-agent-thinking {
   animation: agent-thinking 1.5s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-modal-in {
+  animation: modal-in 0.25s ease-out;
 }
 
 .animate-shimmer {
