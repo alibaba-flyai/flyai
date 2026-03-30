@@ -36,7 +36,7 @@ const ROLE_PATTERNS: [FieldRole, RegExp][] = [
   ["location", /address|location|city|station/i],
   ["author", /author|brand|source|org|publisher/i],
   ["date", /date|time|created|updated|when|depDateTime|arrDateTime|decorationTime/i],
-  ["tags", /tags|category|topics|keywords|poiLevel|star(?!s)|journeyType|freePoiStatus/i],
+  ["tags", /tags|category|topics|keywords|poiLevel|star(?!s)|journeyType/i],
   ["stat", /score|rating|stars|forks|views|likes|duration|totalDuration|watchers|downloads|issues/i],
 ];
 
@@ -74,7 +74,7 @@ function flattenObject(obj: Record<string, unknown>, prefix = ""): Record<string
   const result: Record<string, unknown> = {};
 
   for (const [key, val] of Object.entries(obj)) {
-    if (val === null || val === undefined || val === "") continue;
+    if (val === null || val === undefined || val === "" || typeof val === "boolean") continue;
 
     const fullKey = prefix ? `${prefix}_${key}` : key;
 
@@ -137,6 +137,15 @@ const STAT_ICONS: Record<string, string> = {
   downloads: "↓",
 };
 
+function formatPrice(val: unknown): string {
+  const s = String(val);
+  // Already has a currency symbol
+  if (/^[¥$€£₹₩]/.test(s)) return s;
+  // Pure number or number-like (e.g. "899", "1,299") — prefix with ¥
+  if (/^\d[\d,.]*$/.test(s)) return `¥${s}`;
+  return s;
+}
+
 function statIcon(key: string): string {
   const lower = key.toLowerCase().replace(/^.*_/, "");
   return STAT_ICONS[lower] || "";
@@ -162,7 +171,8 @@ export function SmartCard({ data, accent }: SmartCardProps) {
   const image = classified.image[0]?.value as string | undefined;
   const title = classified.title[0]?.value as string | undefined;
   const description = classified.description.map((d) => String(d.value)).join(" · ");
-  const price = classified.price[0]?.value as string | undefined;
+  const rawPrice = classified.price[0]?.value;
+  const price = rawPrice != null ? formatPrice(rawPrice) : undefined;
   const link = classified.link[0]?.value as string | undefined;
   const location = classified.location[0]?.value as string | undefined;
   const subtitles = classified.subtitle.map((s) => String(s.value)).filter(Boolean);
@@ -171,7 +181,7 @@ export function SmartCard({ data, accent }: SmartCardProps) {
   const stats = classified.stat;
   const tagArrays = classified.tags.flatMap((t) =>
     Array.isArray(t.value) ? (t.value as string[]) : [String(t.value)]
-  ).filter((t) => t && t !== "UNKNOWN" && t !== "null");
+  ).filter((t) => t && t !== "UNKNOWN" && t !== "null" && t !== "false" && t !== "true");
 
   // Detect route pattern (dep + arr cities/times)
   const depTime = dates.find((d) => /dep/i.test(d.key));
