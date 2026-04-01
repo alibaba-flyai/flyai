@@ -11,7 +11,10 @@
   "dependencies": {
     "@fly-ai/flyai-cli": "^1.0.6",
     "@google/genai": "^1.46.0",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "next": "16.2.1",
+    "posthog-js": "^1.364.4",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },

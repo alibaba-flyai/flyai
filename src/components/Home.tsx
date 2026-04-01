@@ -14,6 +14,15 @@ import {
   ExecutionResult,
   ChatMessage,
 } from "@/lib/types";
+import {
+  trackQuery,
+  trackPlan,
+  trackAgentResult,
+  trackSuggestionClick,
+  trackSkillInstall,
+  trackSkillRemove,
+  trackError,
+} from "@/lib/analytics";
 
 const initialAgentStatuses: Record<AgentType, AgentStatus> = {
   "fast-search": "idle",
@@ -65,6 +74,11 @@ export function Home() {
   const handleToggleSkill = useCallback((skill: AddedSkill) => {
     setAddedSkills((prev) => {
       const exists = prev.some((s) => s.id === skill.id);
+      if (exists) {
+        trackSkillRemove(skill.id, skill.name);
+      } else {
+        trackSkillInstall(skill.id, skill.name);
+      }
       const next = exists ? prev.filter((s) => s.id !== skill.id) : [...prev, skill];
       saveAddedSkills(next);
       return next;
@@ -91,6 +105,11 @@ export function Home() {
   const handleSubmit = useCallback(
     async (userMessage: string) => {
       setIsProcessing(true);
+
+      // Track query with language detection
+      const hasChinese = /[\u4e00-\u9fff]/.test(userMessage);
+      const lang = hasChinese ? "zh" : /^[a-zA-Z\s\d.,!?]+$/.test(userMessage) ? "en" : "other";
+      trackQuery(userMessage, lang as "en" | "zh" | "other");
 
       const userMsg: ChatMessage = {
         id: Date.now().toString(),
@@ -164,6 +183,7 @@ export function Home() {
           setSkillStatuses({});
         }, 3000);
       } catch (err) {
+        trackError("fetch", String(err));
         updateAssistant((msg) => {
           msg.content = `Error: ${String(err)}`;
           msg.isLoading = false;
@@ -186,6 +206,11 @@ export function Home() {
             msg.plan = items;
             msg.results = [];
           });
+          // Track plan
+          const plannedAgents = (items || []).filter((i) => i.type === "agent").map((i) => i.id);
+          const plannedSkills = (items || []).filter((i) => i.type === "skill").map((i) => i.id);
+          trackPlan(plannedAgents, plannedSkills);
+
           // Set all planned items to "thinking" status
           for (const item of items || []) {
             if (AGENT_IDS.has(item.id)) {
@@ -221,6 +246,9 @@ export function Home() {
             }
           }
 
+          // Track agent result
+          trackAgentResult(id, data.type as "agent" | "skill", ((data.items as unknown[]) || []).length, error);
+
           // Append result to message (skip _llm — its answer comes via summary)
           const items = (data.items as unknown[]) || [];
           if (id !== "_llm" && (items.length > 0 || error)) {
@@ -248,6 +276,7 @@ export function Home() {
         }
 
         case "error": {
+          trackError("orchestration", (data.message as string) || "Unknown error");
           updateAssistant((msg) => {
             msg.content = (data.message as string) || "Something went wrong";
             msg.isLoading = false;
@@ -341,7 +370,7 @@ export function Home() {
                   (suggestion) => (
                     <button
                       key={suggestion}
-                      onClick={() => handleSubmit(suggestion)}
+                      onClick={() => { trackSuggestionClick(suggestion); handleSubmit(suggestion); }}
                       disabled={isProcessing}
                       className="px-3 py-1.5 rounded-full text-xs transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-50"
                       style={{
