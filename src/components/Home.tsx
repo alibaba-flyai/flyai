@@ -346,7 +346,7 @@ export function Home() {
             <div className="w-full max-w-2xl">
               <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold mb-2">
-                  Where to <span style={{ color: "var(--color-accent)" }}>next</span>?
+                  Where to <span className="animate-rainbow font-extrabold">next</span>?
                 </h1>
                 <p className="text-sm text-[var(--color-muted)]">
                   Just think out loud. Your agents will handle the rest.
